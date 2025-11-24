@@ -4,9 +4,14 @@ version: '3'
 
 vars:
   GREETING: Hello, World!
+  AIR:
+    sh: echo "$(go env GOPATH)/bin/air"
 
 tasks:
   default:
     cmds:
       - echo "{{.GREETING}}"
     silent: true
+  dev:
+    cmds:
+      - "{{.AIR}}"
