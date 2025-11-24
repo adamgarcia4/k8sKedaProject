@@ -5,11 +5,10 @@ function App() {
   const [queueDepth, setQueueDepth] = useState<number | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [inputValue, setInputValue] = useState<string>('3')
 
   const fetchQueueDepth = async () => {
     try {
-      // Assuming backend is available at localhost:8080 via port-forward
-      // In a real production env, this would be an env var or relative path
       const response = await fetch('http://localhost:8080/queueDepth')
       if (!response.ok) {
         throw new Error('Network response was not ok')
@@ -25,6 +24,34 @@ function App() {
     }
   }
 
+  const updateQueueDepth = async () => {
+    try {
+      const depth = parseInt(inputValue)
+      if (isNaN(depth) || depth < 0) {
+        setError('Please enter a valid number')
+        return
+      }
+
+      const response = await fetch('http://localhost:8080/queueDepth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ queueDepth: depth }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update queue depth')
+      }
+
+      await fetchQueueDepth()
+      setError(null)
+    } catch (err) {
+      setError('Failed to update queue depth')
+      console.error(err)
+    }
+  }
+
   useEffect(() => {
     fetchQueueDepth()
     const interval = setInterval(fetchQueueDepth, 2000)
@@ -34,7 +61,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="card">
-        <h1>Queue Depth Monitor - Testing!</h1>
+        <h1>Queue Depth Monitor</h1>
         <div className="metric-container">
           {loading && <div className="status">Loading...</div>}
           {error && <div className="status error">{error}</div>}
@@ -43,6 +70,18 @@ function App() {
               {queueDepth}
             </div>
           )}
+        </div>
+        <div className="input-container">
+          <input
+            type="number"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Enter queue depth"
+            className="depth-input"
+          />
+          <button onClick={updateQueueDepth} className="update-button">
+            Set Queue Depth
+          </button>
         </div>
         <p className="description">
           Real-time queue depth from KEDA Clone Operator
