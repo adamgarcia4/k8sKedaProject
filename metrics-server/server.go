@@ -13,9 +13,28 @@ type QueueDepthResponse struct {
 	QueueDepth int `json:"queueDepth"`
 }
 
-var (
-	queueDepth int = 3 // Default value
+type QueueDepthConfig struct {
+	QueueDepth int `json:"queueDepth"`
 	mu         sync.RWMutex
+}
+
+func (q *QueueDepthConfig) SetQueueDepth(depth int) {
+	q.mu.Lock()
+	q.QueueDepth = depth
+	q.mu.Unlock()
+}
+
+func (q *QueueDepthConfig) GetQueueDepth() int {
+	q.mu.RLock()
+	defer q.mu.RUnlock()
+	return q.QueueDepth
+}
+
+var (
+	queueDepthConfig *QueueDepthConfig = &QueueDepthConfig{
+		QueueDepth: 3,
+		mu:         sync.RWMutex{},
+	}
 )
 
 func main() {
@@ -29,9 +48,7 @@ func main() {
 	})
 
 	server.GET("/queueDepth", func(ctx *gin.Context) {
-		mu.RLock()
-		depth := queueDepth
-		mu.RUnlock()
+		depth := queueDepthConfig.GetQueueDepth()
 
 		ctx.JSON(http.StatusOK, gin.H{
 			"QueueDepth": depth,
@@ -51,9 +68,7 @@ func main() {
 			return
 		}
 
-		mu.Lock()
-		queueDepth = req.QueueDepth
-		mu.Unlock()
+		queueDepthConfig.SetQueueDepth(req.QueueDepth)
 
 		log.Printf("Set queue depth to: %d", req.QueueDepth)
 
