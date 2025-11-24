@@ -8,10 +8,51 @@ vars:
     sh: echo "$(go env GOPATH)/bin/air"
 
 tasks:
+  01-create-kind-cluster:
+    cmds:
+      - kind create cluster --name keda-clone --config kind-config.yaml
+
   default:
     cmds:
       - echo "{{.GREETING}}"
     silent: true
+
+  02-build-metrics-server:
+    cmds:
+      - docker build -t metrics-server:latest ./metrics-server
+      - kind load docker-image metrics-server:latest --name keda-clone
+  03-deploy-metrics-server:
+    cmds:
+      - kubectl apply -f metrics-server/k8s/deployment.yaml
+
+  02-build-metrics-server-dev:
+    cmds:
+      - docker build -f metrics-server/Dockerfile.dev -t metrics-server:dev ./metrics-server
+      - kind load docker-image metrics-server:dev --name keda-clone
+
+  03-deploy-metrics-server-dev:
+    cmds:
+      - kubectl apply -f metrics-server/k8s/deployment-dev.yaml
+
+  dev-k8s:
+    cmds:
+      - task: 01-create-kind-cluster
+      - task: 02-build-metrics-server-dev
+      - task: 03-deploy-metrics-server-dev
+      - echo "Waiting for pod to be ready..."
+      - kubectl wait --for=condition=ready pod -l app=metrics-server --timeout=60s
+      - echo "Port forwarding..."
+      - kubectl port-forward svc/metrics-server 8080:80
+
+
+
+
+  debug-01-run-metrics-server:
+    cmds:
+      - go run -C ./metrics-server server.go
   dev:
     cmds:
       - "{{.AIR}}"
+  port-forward:
+    cmds:
+      - kubectl port-forward svc/metrics-server 8080:80
