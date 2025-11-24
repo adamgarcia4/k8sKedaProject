@@ -34,7 +34,7 @@ function App() {
   return (
     <div className="app-container">
       <div className="card">
-        <h1>Queue Depth Monitor</h1>
+        <h1>Queue Depth Monitor - Testing!</h1>
         <div className="metric-container">
           {loading && <div className="status">Loading...</div>}
           {error && <div className="status error">{error}</div>}

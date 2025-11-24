@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: default
+  labels:
+    app: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: frontend:dev
+        imagePullPolicy: Never
+        ports:
+        - containerPort: 5173
+        volumeMounts:
+        - name: code
+          mountPath: /app
+      volumes:
+      - name: code
+        hostPath:
+          path: /app/frontend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: default
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 5173
+      nodePort: 30081
+      targetPort: 5173

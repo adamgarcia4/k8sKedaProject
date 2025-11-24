@@ -44,13 +44,22 @@ tasks:
       - kubectl apply -f frontend/k8s/deployment.yaml
       - kubectl apply -f frontend/k8s/service.yaml
 
+  04-build-frontend-dev:
+    cmds:
+      - docker build -f frontend/Dockerfile.dev -t frontend:dev ./frontend
+      - kind load docker-image frontend:dev --name keda-clone
+
+  05-deploy-frontend-dev:
+    cmds:
+      - kubectl apply -f frontend/k8s/deployment-dev.yaml
+
   dev-k8s:
     cmds:
       - task: 01-create-kind-cluster
       - task: 02-build-metrics-server-dev
       - task: 03-deploy-metrics-server-dev
-      - task: 04-build-frontend
-      - task: 05-deploy-frontend
+      - task: 04-build-frontend-dev
+      - task: 05-deploy-frontend-dev
       - echo "Waiting for pods to be ready..."
       - kubectl wait --for=condition=ready pod -l app=metrics-server --timeout=60s
       - kubectl wait --for=condition=ready pod -l app=frontend --timeout=60s
@@ -74,7 +83,7 @@ tasks:
       - kubectl port-forward svc/metrics-server 8080:8080
   port-forward-frontend:
     cmds:
-      - kubectl port-forward svc/frontend 3000:80
+      - kubectl port-forward svc/frontend 3000:5173
   port-forward:
     deps:
       - port-forward-backend

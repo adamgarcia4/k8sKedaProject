@@ -1,8 +1,5 @@
-FROM node:18-alpine
+FROM node:20-alpine
 WORKDIR /app
-COPY package.json package-lock.json* ./
-# We force install here because local install failed
-RUN npm install
-COPY . .
 EXPOSE 5173
-CMD ["npm", "run", "dev", "--", "--host"]
+# Install dependencies at runtime after volume mount
+CMD ["sh", "-c", "npm ci --force && npm run dev -- --host"]
