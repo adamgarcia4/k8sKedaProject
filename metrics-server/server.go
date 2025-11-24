@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +16,13 @@ type QueueDepthResponse struct {
 
 func main() {
 	server := gin.Default()
+	server.Use(cors.Default())
+
+	server.GET("/", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, gin.H{
+			"message": "OK",
+		})
+	})
 
 	server.GET("/queueDepth", func(ctx *gin.Context) {
 		depth := rand.Intn(101)
