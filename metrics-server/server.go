@@ -20,7 +20,7 @@ func main() {
 		depth := rand.Intn(101)
 		ctx.JSON(http.StatusOK, gin.H{
 			"QueueDepth": depth,
-			"message":    "pong4",
+			"message":    "pong8",
 		})
 
 		log.Printf("Served /queueDepth: %d", depth)
